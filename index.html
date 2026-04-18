@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="UTF-8">
+<title>CAD System</title>
+
+<style>
+body{background:#000;color:#ccc;font-family:Arial;margin:0;}
+.container{display:grid;grid-template-columns:2fr 1fr;gap:10px;padding:10px;}
+.panel{border:2px solid #555;background:#050505;padding:10px;}
+h3{margin:0 0 8px 0;color:#ddd;}
+input,select,button,textarea{
+  background:#111;color:#ccc;border:1px solid #444;padding:5px;margin:2px;
+}
+button:hover{background:#222;cursor:pointer;}
+.table{width:100%;border-collapse:collapse;}
+.table th{background:#222;padding:6px;text-align:left;}
+.table td{padding:5px;border-top:1px solid #333;}
+.unit{padding:5px;border-bottom:1px solid #222;cursor:pointer;}
+.unit:hover{background:#111;}
+.scroll{max-height:220px;overflow:auto;border:1px solid #333;padding:5px;}
+.k0{color:#888;} .k1{color:#00bfff;} .k2{color:#00ff00;}
+.k7{color:#fff;} .k9{color:#ff4444;}
+.alert{animation:flash 1s infinite;}
+@keyframes flash{0%{background:#300;}50%{background:#900;}100%{background:#300;}}
+.headerRow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.admin{border-top:2px solid #a00;margin-top:10px;padding-top:10px;}
+.small{font-size:12px;color:#aaa;}
+</style>
+
+</head>
+
+<body>
+
+<!-- LOGIN -->
+
+<div id="loginPanel" style="padding:10px;">
+  <h2>Login</h2>
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <p id="loginStatus" style="color:#f66;"></p>
+</div>
+
+<!-- APP -->
+
+<div id="app" style="display:none;">
+  <div class="container">
+
+```
+<!-- LEFT -->
+<div>
+
+  <!-- CREATE / CONTROL -->
+  <div class="panel">
+    <h3>Incident Control</h3>
+
+    <div class="headerRow">
+      <input id="location" placeholder="Location">
+      <select id="incType">
+        <option value="">Select</option>
+        <option>AIRH</option><option>AIRL</option><option>ALARM</option>
+        <option>BURNOFF</option><option>EXERCISE</option><option>FIREALM</option>
+        <option>FIRETEST</option><option>HAZ</option><option>HAZFLAM</option>
+        <option>HAZGAS</option><option>LINERESC</option><option>MED</option>
+        <option>MEDFR</option><option>MIN</option><option>MVC</option>
+        <option>MVCRESC</option><option>MVCHEVY</option><option>NAT1</option>
+        <option>NAT2</option><option>NAT3</option><option>RESC</option>
+        <option>SHIP</option><option>SPRNKLR</option><option>STNCALL</option>
+        <option>STNPRTY</option><option>STRU</option><option>TEVAC</option>
+        <option>USAR</option><option>VEG</option><option>WATRESC</option>
+      </select>
+      <button onclick="createEvent()">Create</button>
+    </div>
+
+    <div class="headerRow">
+      <input id="comcenMsg" placeholder="COMCEN message">
+      <button onclick="logComcen()">Log</button>
+      <select id="assignUnit"></select>
+      <button onclick="assignUnitFunc()">Assign</button>
+      <select id="closeResult">
+        <option value="">Close result</option>
+        <option>1100 STRUCTURE FIRE</option>
+        <option>3100 MEDICAL</option>
+        <option>7100 FALSE ALARM</option>
+      </select>
+      <button onclick="closeIncident()">Close</button>
+      <button onclick="downloadIncident()">Download</button>
+    </div>
+
+    <div class="small">Log</div>
+    <div id="log" class="scroll"></div>
+  </div>
+
+  <!-- EVENTS -->
+  <div class="panel">
+    <h3>Event Monitor</h3>
+    <table class="table" id="eventsTable"></table>
+  </div>
+
+</div>
+
+<!-- RIGHT -->
+<div>
+
+  <!-- UNITS -->
+  <div class="panel">
+    <h3>Unit Monitor</h3>
+
+    <div class="headerRow">
+      <input id="newUnit" placeholder="Add Callsign">
+      <button onclick="addUnit()">Add</button>
+    </div>
+
+    <div class="headerRow">
+      <input id="kCallsign" placeholder="Callsign">
+      <select id="kDropdown">
+        <option value="">Select Code</option>
+        <option>K0: UNAVAILABLE</option>
+        <option>K1: PROCEEDING TO INCIDENT</option>
+        <option>K2: IN ATTENDANCE AT INCIDENT</option>
+        <option>K3: ON RT OUTSIDE NORMAL TURNOUT AREA</option>
+        <option>K4: ON RT INSIDE NORMAL TURNOUT AREA</option>
+        <option>K5: ON RT AVAILABLE AT INCIDENT</option>
+        <option>K6</option>
+        <option>K7: AT NORMAL STATION</option>
+        <option>K9: OFF RT</option>
+        <option>K10: RE-COMMISSIONING APPLIANCE</option>
+        <option>K11P: INTERCAD POLICE</option>
+        <option>K11F: INTERCAD SPECIALIST FIRE INVESTIGATOR</option>
+        <option>K11A: INTERCAD AMBULANCE</option>
+        <option>K11E: INTERCAD POWER AUTHORITY</option>
+        <option>K12: Suspicious nature</option>
+        <option>K13: Traumatic/Wellbeing incident</option>
+        <option>K14: Uncontrolled burn/smoke nuisance</option>
+        <option>K15: Hazardous substances</option>
+        <option>K16: Fireworks</option>
+        <option>K28-1: Return further appliances</option>
+        <option>K38: Associate this unit to incident</option>
+        <option>K39: Retransmit current status</option>
+        <option>K55: Special service incident</option>
+        <option>K66: Vegetation/scrub/rubbish fire</option>
+        <option>K77: Nothing showing</option>
+        <option>K88: Property fire small</option>
+        <option>K99: Property fire well involved</option>
+      </select>
+      <input id="k6Location" placeholder="Location (K6)">
+      <button onclick="applyKCode()">Confirm</button>
+    </div>
+
+    <div id="unitList" class="scroll"></div>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="panel admin" id="adminPanel" style="display:none;">
+    <h3>Admin Panel</h3>
+
+    <div class="headerRow">
+      <input id="newUserEmail" placeholder="New Email">
+      <input id="newUserPass" placeholder="New Password">
+      <button onclick="addUser()">Add User</button>
+    </div>
+
+    <div class="headerRow">
+      <input id="removeUserEmail" placeholder="Remove Email">
+      <button onclick="removeUser()">Remove</button>
+    </div>
+
+    <div class="small">Users</div>
+    <div id="userList" class="scroll"></div>
+  </div>
+
+</div>
+```
+
+  </div>
+</div>
+
+<script>
+// =====================
+// CONFIG
+// =====================
+
+// Set your Discord webhook (or leave empty "")
+const DISCORD_WEBHOOK = "";
+
+// Default admin (created on first run)
+const DEFAULT_ADMIN = {
+  email: "craig.blippy@fireandemergencyaotearoa.co.nz",
+  password: "CBliptin0A",
+  role: "admin"
+};
+
+// =====================
+// STATE
+// =====================
+
+let users = [];
+let events = {};
+let units = {};
+let status = {};
+let selectedEvent = null;
+let currentUser = null;
+let discordThreads = {}; // eventId -> threadId
+
+// =====================
+// STORAGE
+// =====================
+
+function save(){
+  localStorage.setItem("CAD_DATA", JSON.stringify({
+    users, events, units, status, discordThreads
+  }));
+}
+
+function load(){
+  const d = JSON.parse(localStorage.getItem("CAD_DATA") || "{}");
+  users = d.users || [];
+  if(users.length === 0){
+    users.push(DEFAULT_ADMIN);
+    save();
+  }
+  events = d.events || {};
+  units = d.units || {};
+  status = d.status || {};
+  discordThreads = d.discordThreads || {};
+}
+
+// =====================
+// DISCORD
+// =====================
+
+const COLORS = {alert:15158332,success:5763719,info:3447003,warning:15844367};
+
+async function sendCAD({eventId=null,title,description,color="info"}){
+  if(!DISCORD_WEBHOOK) return;
+
+  const payload = {
+    embeds:[{
+      title, description, color: COLORS[color],
+      footer:{text:"CAD System"},
+      timestamp: new Date().toISOString()
+    }]
+  };
+
+  if(eventId){
+    let threadId = discordThreads[eventId];
+
+    if(!threadId){
+      payload.thread_name = "🚨 Incident " + eventId;
+      const res = await fetch(DISCORD_WEBHOOK,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(payload)
+      });
+      try{
+        const data = await res.json();
+        discordThreads[eventId] = data.id;
+        save();
+      }catch{}
+      return;
+    }
+
+    fetch(DISCORD_WEBHOOK + "?thread_id=" + threadId,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(payload)
+    });
+
+  }else{
+    fetch(DISCORD_WEBHOOK,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(payload)
+    });
+  }
+}
+
+// =====================
+// LOGIN
+// =====================
+
+function login(){
+  const e = email.value.trim();
+  const p = password.value.trim();
+
+  const u = users.find(x => x.email === e && x.password === p);
+
+  if(u){
+    currentUser = u;
+    loginPanel.style.display = "none";
+    app.style.display = "block";
+
+    if(u.role === "admin"){
+      adminPanel.style.display = "block";
+      renderUsers();
+    }
+
+    renderAll();
+    sendCAD({title:"✅ Login",description:e,color:"success"});
+  }else{
+    loginStatus.innerText = "Invalid login";
+    sendCAD({title:"❌ Failed Login",description:e,color:"alert"});
+  }
+}
+
+// =====================
+// ADMIN
+// =====================
+
+function addUser(){
+  const e = newUserEmail.value.trim();
+  const p = newUserPass.value.trim();
+  if(!e || !p) return;
+
+  users.push({email:e,password:p,role:"user"});
+  save();
+  renderUsers();
+
+  sendCAD({title:"👑 User Created",description:e,color:"warning"});
+}
+
+function removeUser(){
+  const e = removeUserEmail.value.trim();
+  users = users.filter(u => u.email !== e);
+  save();
+  renderUsers();
+
+  sendCAD({title:"👑 User Removed",description:e,color:"warning"});
+}
+
+function renderUsers(){
+  userList.innerHTML = "";
+  users.forEach(u=>{
+    const d = document.createElement("div");
+    d.textContent = u.email + " (" + (u.role||"user") + ")";
+    userList.appendChild(d);
+  });
+}
+
+// =====================
+// INCIDENTS
+// =====================
+
+function createEvent(){
+  const id = Date.now();
+
+  events[id] = {
+    id,
+    type: incType.value,
+    loc: location.value,
+    units: [],
+    log: [],
+    alert: true
+  };
+
+  selectedEvent = events[id];
+  save();
+  renderAll();
+
+  sendCAD({
+    eventId:id,
+    title:"🚨 New Incident",
+    description:`${incType.value} @ ${location.value}`,
+    color:"alert"
+  });
+}
+
+function logComcen(){
+  if(!selectedEvent) return;
+
+  const msg = "COMCENCOM: " + comcenMsg.value;
+  selectedEvent.log.push(msg);
+  save();
+  renderLog();
+
+  sendCAD({
+    eventId:selectedEvent.id,
+    title:"📞 COMCEN",
+    description:msg
+  });
+
+  comcenMsg.value="";
+}
+
+function assignUnitFunc(){
+  if(!selectedEvent) return;
+
+  const u = assignUnit.value;
+  if(!selectedEvent.units.includes(u)){
+    selectedEvent.units.push(u);
+    save();
+    renderAll();
+
+    sendCAD({
+      eventId:selectedEvent.id,
+      title:"🚒 Unit Assigned",
+      description:u
+    });
+  }
+}
+
+function closeIncident(){
+  if(!selectedEvent) return;
+  const res = closeResult.value;
+  if(!res) return;
+
+  selectedEvent.log.push("CLOSED: " + res);
+  selectedEvent.alert = false;
+  save();
+  renderAll();
+
+  sendCAD({
+    eventId:selectedEvent.id,
+    title:"🧾 Incident Closed",
+    description:res,
+    color:"success"
+  });
+}
+
+// =====================
+// K-CODES
+// =====================
+
+function applyKCode(){
+  const u = kCallsign.value.trim();
+  const k = kDropdown.value;
+  const loc = k6Location.value.trim();
+
+  if(!u || !k) return;
+
+  let s = k;
+  if(k.startsWith("K6") && loc){
+    s += " @ " + loc;
+  }
+
+  status[u] = s;
+
+  if(!units[u]) units[u] = true;
+
+  if(selectedEvent){
+    selectedEvent.log.push(u + " → " + s);
+  }
+
+  save();
+  renderUnits();
+  renderLog();
+
+  sendCAD({
+    eventId:selectedEvent?.id,
+    title:"📍 Status Update",
+    description:`${u} → ${s}`
+  });
+
+  kCallsign.value="";
+  kDropdown.value="";
+  k6Location.value="";
+}
+
+// =====================
+// DOWNLOAD
+// =====================
+
+function downloadIncident(){
+  if(!selectedEvent) return;
+
+  const txt =
+    "EVENT " + selectedEvent.id + "\n" +
+    selectedEvent.type + "\n" +
+    selectedEvent.loc + "\n\n" +
+    (selectedEvent.log||[]).join("\n");
+
+  const blob = new Blob([txt]);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "incident_" + selectedEvent.id + ".txt";
+  a.click();
+}
+
+// =====================
+// UI
+// =====================
+
+function renderAll(){
+  renderEvents();
+  renderUnits();
+  updateAssign();
+  renderLog();
+}
+
+function renderEvents(){
+  eventsTable.innerHTML =
+    "<tr><th>ID</th><th>Type</th><th>Location</th><th>Units</th></tr>";
+
+  Object.values(events).forEach(e=>{
+    const r = document.createElement("tr");
+    if(e.alert) r.classList.add("alert");
+
+    r.innerHTML =
+      `<td>${e.id}</td><td>${e.type}</td><td>${e.loc}</td><td>${(e.units||[]).join(",")}</td>`;
+
+    r.onclick = ()=>{
+      selectedEvent = e;
+      e.alert = false;
+      save();
+      renderLog();
+    };
+
+    eventsTable.appendChild(r);
+  });
+}
+
+function renderUnits(){
+  unitList.innerHTML = "";
+  Object.keys(units).forEach(u=>{
+    const d = document.createElement("div");
+    const s = status[u] || "K0";
+
+    const cls = s.split(":")[0].toLowerCase();
+    d.className = "unit " + cls;
+
+    d.textContent = `${u} — ${s}`;
+    d.onclick = ()=>{ kCallsign.value = u; };
+
+    unitList.appendChild(d);
+  });
+}
+
+function renderLog(){
+  log.innerHTML = "";
+  if(!selectedEvent) return;
+
+  (selectedEvent.log||[]).forEach(l=>{
+    const d = document.createElement("div");
+    d.textContent = l;
+    log.appendChild(d);
+  });
+}
+
+function updateAssign(){
+  assignUnit.innerHTML = "";
+  Object.keys(units).forEach(u=>{
+    const o = document.createElement("option");
+    o.value = u;
+    o.textContent = u;
+    assignUnit.appendChild(o);
+  });
+}
+
+// =====================
+// INIT
+// =====================
+
+load();
+</script>
+
+</body>
+</html>
